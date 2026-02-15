@@ -51,13 +51,21 @@ io.on('connection', (socket) => {
 });
 
 // 5. Server Start & QR Code
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const myIp = ip.address();
-const url = `http://${myIp}:${PORT}`;
+// In cloud, we might not have a public IP directly, so we just log the port
+// If local, we show the full URL
+const isCloud = process.env.PORT !== undefined;
+const url = isCloud ? `http://localhost:${PORT}` : `http://${myIp}:${PORT}`;
 
 http.listen(PORT, () => {
     console.log(`Server running at: ${url}`);
-    QRCode.toString(url, { type: 'terminal' }, (err, qr) => {
-        if (!err) console.log(qr);
-    });
+    console.log(`(If deploying to cloud, use the provided domain instead of IP)`);
+
+    // Only show QR for local dev or if we can determine the URL
+    if (!isCloud) {
+        QRCode.toString(url, { type: 'terminal' }, (err, qr) => {
+            if (!err) console.log(qr);
+        });
+    }
 });
